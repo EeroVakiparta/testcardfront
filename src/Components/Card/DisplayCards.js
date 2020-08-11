@@ -7,11 +7,21 @@ import setAuthToken from "../../setAuthToken";
 
 function DisplayCards(props) {
   const [data, setData] = useState([]);
+  const [toRemove, setToRemove] = useState([]);
+  const colors = [
+    "Primary",
+    "Secondary",
+    "Success",
+    "Danger",
+    "Warning",
+    "Info",
+    "Dark"
+  ];
   useEffect(() => {
     if (localStorage.getItem("token")) {
       setAuthToken(localStorage.getItem("token"));
       axios
-        .get(`${server}/aruegame/getrandomcards`)
+        .post(`${server}/aruegame/getfourrandomcards`, {toRemove: toRemove})
         .then(res => setData(res.data))
         .catch(err => {
           window.alert(err);
@@ -22,7 +32,7 @@ function DisplayCards(props) {
     }
   }, []);
 
-  function incrementPoints() { 
+  function incrementPoints() {
     axios
       .post(`${server}/aruegame/incrementpoint`, {})
       .then(res => console.log(res.data))
@@ -32,9 +42,11 @@ function DisplayCards(props) {
       });
   }
   function generateNewCards() {
+    console.log("toRemove",toRemove);
+    console.log("data", data);
     axios
-      .get(`${server}/aruegame/getrandomcards`)
-      .then(res => setData(res.data))
+      .post(`${server}/aruegame/getrandomcards`, {toRemove: toRemove, empty: data.length <= 0 ? true : false} )
+      .then(res => res.data.cards.length > 0 ? setData(prevData => prevData.concat(res.data.cards) ): console.log(res.data))
       .catch(err => {
         window.alert(err);
         console.log(err);
@@ -55,79 +67,54 @@ function DisplayCards(props) {
       </div>
       <div
         style={{
-          height: "90vh",
+          // height: "90vh",
           position: "relative",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: "1fr 1fr 0.5fr",
+          gridTemplateRows: "1fr 1fr",
           justifyItems: "center",
           alignItems: "center"
         }}
       >
-        <div>
-          <Card bg="primary" style={{ width: "18rem" }} className="mb-2">
-            <Card.Img
-              variant="top"
-              src={`${data[0] ? data[0].photoUrl : ""}`}
-            />
-            <Card.Body>
-              <Card.Text>Name: {data[0] ? data[0].name : ""}</Card.Text>
-              <Card.Text>
-                Description: {data[0] ? data[0].description : ""}
-              </Card.Text>
-              <Card.Text>Value: {data[0] ? data[0].value : ""}</Card.Text>
-              <Card.Text>Author: {data[0] ? data[0].author : ""}</Card.Text>
-            </Card.Body>
-          </Card>
-        </div>
-        <div>
-          <Card bg="info" style={{ width: "18rem" }} className="mb-2">
-            <Card.Img
-              variant="top"
-              src={`${data[1] ? data[1].photoUrl : ""}`}
-            />
-            <Card.Body>
-              <Card.Text>Name: {data[1] ? data[1].name : ""}</Card.Text>
-              <Card.Text>
-                Description: {data[1] ? data[1].description : ""}
-              </Card.Text>
-              <Card.Text>Value: {data[1] ? data[1].value : ""}</Card.Text>
-              <Card.Text>Author: {data[1] ? data[1].author : ""}</Card.Text>
-            </Card.Body>
-          </Card>
-        </div>
-        <div>
-          <Card bg="warning" style={{ width: "18rem" }} className="mb-2">
-            <Card.Img
-              variant="top"
-              src={`${data[2] ? data[2].photoUrl : ""}`}
-            />
-            <Card.Body>
-              <Card.Text>Name: {data[2] ? data[2].name : ""}</Card.Text>
-              <Card.Text>
-                Description: {data[2] ? data[2].description : ""}
-              </Card.Text>
-              <Card.Text>Value: {data[2] ? data[2].value : ""}</Card.Text>
-              <Card.Text>Author: {data[2] ? data[2].author : ""}</Card.Text>
-            </Card.Body>
-          </Card>
-        </div>
-        <div>
-          <Card bg="danger" style={{ width: "18rem" }} className="mb-2">
-            <Card.Img
-              variant="top"
-              src={`${data[3] ? data[3].photoUrl : ""}`}
-            />
-            <Card.Body>
-              <Card.Text>Name: {data[3] ? data[3].name : ""}</Card.Text>
-              <Card.Text>
-                Description: {data[3] ? data[3].description : ""}
-              </Card.Text>
-              <Card.Text>Value: {data[3] ? data[3].value : ""}</Card.Text>
-              <Card.Text>Author: {data[3] ? data[3].author : ""}</Card.Text>
-            </Card.Body>
-          </Card>
-        </div>
+        {data.map((item, key) => (
+          <div>
+            <Card
+              key={key}
+              // text="light"
+              bg={"" + colors[5].toLowerCase()}
+              style={{ width: "18rem", cursor: "pointer" }}
+              className="mb-2"
+              onClick={() => {
+                const newD = data.filter(i => i.id !== item.id);
+                const tRemove = newD.map(i => i.id);
+                setToRemove([...tRemove]);
+                setData(newD);
+              }}
+            >
+              <Card.Img
+                variant="top"
+                style={{ height: "200px" }}
+                src={`${item ? item.photoUrl : ""}`}
+              />
+              <Card.Body>
+                <Card.Text>Name: {item ? item.name : ""}</Card.Text>
+                <Card.Text>
+                  Description: {item ? item.description : ""}
+                </Card.Text>
+                <Card.Text>Value: {item ? item.value : ""}</Card.Text>
+                <Card.Text>Author: {item ? item.author : ""}</Card.Text>
+              </Card.Body>
+            </Card>
+          </div>
+        ))}
+      </div>
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          justifyContent: "space-around"
+        }}
+      >
         <div style={{ margin: "20px" }}>
           <Button onClick={incrementPoints}>Add A Point To Me</Button>
         </div>

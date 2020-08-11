@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
 function Dashboard(props) {
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      props.history.push("/");
+    }
+  }, []);
   return (
     <div className="App-header">
       <div style={{ margin: "20px" }}>
